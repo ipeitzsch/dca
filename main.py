@@ -252,6 +252,8 @@ def BRIEF(img, keypoints, orientations=None, n=256, patch_size=9, sigma=1, mode=
 
 
 def match(descriptors1, descriptors2, max_distance=np.inf, cross_check=True, distance_ratio=None):
+    descriptors1 = descriptors1.get()
+    descriptors2 = descriptors2.get()
     distances = cdist(descriptors1, descriptors2, metric='hamming')  # distances.shape: [len(d1), len(d2)]
 
     indices1 = np.arange(descriptors1.shape[0])  # [0, 1, 2, 3, 4, 5, 6, 7, ..., len(d1)] "indices of d1"
