@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from scipy.signal import convolve2d
 from scipy.spatial.distance import cdist
 
@@ -22,6 +23,12 @@ class ecc:
             check.append(val[i + 4] ^ val[i + 5] ^ val[i + 6] ^ val[i + 7])
 
             self.checks.append(check)
+            
+    def error_inj(descriptors)
+	
+	x = random.choice(descriptors)
+	j = random.randrange(len(x))
+	x[j] = bool(not x[j])
 
     def get(self):
 
