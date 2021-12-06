@@ -24,11 +24,10 @@ class ecc:
 
             self.checks.append(check)
             
-    def error_inj(descriptors)
-	
-	x = random.choice(descriptors)
-	j = random.randrange(len(x))
-	x[j] = bool(not x[j])
+    def error_inj(self, descriptors):
+        x = random.choice(descriptors)
+        j = random.randrange(len(x))
+        x[j] = bool(not x[j])
 
     def get(self):
 
