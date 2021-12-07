@@ -6,80 +6,86 @@ from scipy.spatial.distance import cdist
 class OopsieException(Exception):
     pass
 
-class ecc:
-    def __init__(self, val):
-        self.val = val
-        self.checks = []
 
-        '''
-        consult this paper for the (12,8) hamming code used: http://faculty.washington.edu/lcrum/Archives/TCSS372AF08/Hamming.pdf
+def make_check(val):
+    checks = []
 
-        '''
-        for i in range(len(val), 8):
-            check = []
-            check.append(val[i] ^ val[i + 1] ^ val[i + 3] ^ val[i + 4] ^ val[i + 6])
-            check.append(val[i] ^ val[i + 2] ^ val[i + 3] ^ val[i ^ 5] ^ val[i + 6])
-            check.append(val[i + 1] ^ val[i + 2] ^ val[i + 3] ^ val[i + 7])
-            check.append(val[i + 4] ^ val[i + 5] ^ val[i + 6] ^ val[i + 7])
+    '''
+    consult this paper for the (12,8) hamming code used: http://faculty.washington.edu/lcrum/Archives/TCSS372AF08/Hamming.pdf
 
-            self.checks.append(check)
+    '''
+
+    for i in range(0, val.size, 8):
+        check = []
+        check.append(val[i] ^ val[i + 1] ^ val[i + 3] ^ val[i + 4] ^ val[i + 6])
+        check.append(val[i] ^ val[i + 2] ^ val[i + 3] ^ val[i ^ 5] ^ val[i + 6])
+        check.append(val[i + 1] ^ val[i + 2] ^ val[i + 3] ^ val[i + 7])
+        check.append(val[i + 4] ^ val[i + 5] ^ val[i + 6] ^ val[i + 7])
+
+        checks.append(check)
+
+    return checks
             
-    def error_inj(self, descriptors):
-        x = random.choice(descriptors)
-        j = random.randrange(len(x))
-        x[j] = bool(not x[j])
-        return descriptors.index(x)
+def error_inj(descriptors):
+    i = random.randrange(len(descriptors))
+    y = descriptors[i]
+    k = random.randrange(len(y))
+    x = y[k]
+    j = random.randrange(len(x))
+    x[j] = bool(not x[j])
+    return i, j
 
-    def get(self):
+def correct(val, checks):
 
-        '''
+    '''
 
-        H = 1 1 0 1 1 0 1 0 | 1 0 0 0
-            1 0 1 1 0 1 1 0 | 0 1 0 0
-            0 1 1 1 0 0 0 1 | 0 0 1 0
-            0 0 0 0 1 1 1 1 | 0 0 0 1
+    H = 1 1 0 1 1 0 1 0 | 1 0 0 0
+        1 0 1 1 0 1 1 0 | 0 1 0 0
+        0 1 1 1 0 0 0 1 | 0 0 1 0
+        0 0 0 0 1 1 1 1 | 0 0 0 1
 
-           v0------------>v7 c0---->c3
-        '''
-        count = 0
-        for i in range(len(self.val), 8):
-            p = self.val[i:i+8] + self.checks[count]
-            z = []
-            z.append(p[0] ^ p[1] ^ p[3] ^ p[4] ^ p[6] ^ p[8])
-            z.append(p[0] ^ p[2] ^ p[3] ^ p[5] ^ p[6] ^ p[9])
-            z.append(p[1] ^ p[2] ^ p[3] ^ p[7] ^ p[10])
-            z.append(p[4] ^ p[5] ^ p[6] ^ p[7] ^ p[11])
+       v0------------>v7 c0---->c3
+    '''
+    count = 0
+    for i in range(0, val.size, 8):
+        p = val[i:i+8].tolist() + checks[count]
+        z = []
+        z.append(p[0] ^ p[1] ^ p[3] ^ p[4] ^ p[6] ^ p[8])
+        z.append(p[0] ^ p[2] ^ p[3] ^ p[5] ^ p[6] ^ p[9])
+        z.append(p[1] ^ p[2] ^ p[3] ^ p[7] ^ p[10])
+        z.append(p[4] ^ p[5] ^ p[6] ^ p[7] ^ p[11])
 
-            if z == [0, 0, 0, 0]:
-                continue
-            elif z == [1, 1, 0, 0]:
-                self.val[i] = not self.val[i]
-            elif z == [1, 0, 1, 0]:
-                self.val[i + 1] = not self.val[i + 1]
-            elif z == [0, 1, 1, 0]:
-                self.val[i + 2] = not self.val[i + 2]
-            elif z == [1, 1, 1, 0]:
-                self.val[i + 3] = not self.val[i + 3]
-            elif z == [1, 0, 0, 1]:
-                self.val[i + 4] = not self.val[i + 4]
-            elif z == [0, 1, 0, 1]:
-                self.val[i + 5] = not self.val[i + 5]
-            elif z == [1, 1, 0, 1]:
-                self.val[i + 6] = not self.val[i + 6]
-            elif z == [0, 0, 1, 1]:
-                self.val[i + 7] = not self.val[i + 7]
-            elif z == [1, 0, 0, 0]:
-                self.checks[i][0] = not self.checks[i][0]
-            elif z == [0, 1, 0, 0]:
-                self.checks[i][1] = not self.checks[i][1]
-            elif z == [0, 0, 1, 0]:
-                self.checks[i][2] = not self.checks[i][2]
-            elif z == [0, 0, 0, 1]:
-                self.checks[i][3] = not self.checks[i][3]
-            else:
-                raise OopsieException
-
-        return self.val
+        if z == [0, 0, 0, 0]:
+            count += 1
+            continue
+        elif z == [1, 1, 0, 0]:
+            val[i] = not val[i]
+        elif z == [1, 0, 1, 0]:
+            val[i + 1] = not val[i + 1]
+        elif z == [0, 1, 1, 0]:
+            val[i + 2] = not val[i + 2]
+        elif z == [1, 1, 1, 0]:
+            val[i + 3] = not val[i + 3]
+        elif z == [1, 0, 0, 1]:
+            val[i + 4] = not val[i + 4]
+        elif z == [0, 1, 0, 1]:
+            val[i + 5] = not val[i + 5]
+        elif z == [1, 1, 0, 1]:
+            val[i + 6] = not val[i + 6]
+        elif z == [0, 0, 1, 1]:
+            val[i + 7] = not val[i + 7]
+        elif z == [1, 0, 0, 0]:
+            checks[count][0] = not checks[count][0]
+        elif z == [0, 1, 0, 0]:
+            checks[count][1] = not checks[count][1]
+        elif z == [0, 0, 1, 0]:
+            checks[count][2] = not checks[count][2]
+        elif z == [0, 0, 0, 1]:
+            checks[count][3] = not checks[count][3]
+        else:
+            raise OopsieException
+        count += 1
+    return val, checks
 
 def FAST(img, N=9, threshold=0.15, nms_window=2):
     kernel = np.array([[1, 2, 1],
@@ -248,12 +254,20 @@ def BRIEF(img, keypoints, orientations=None, n=256, patch_size=9, sigma=1, mode=
 
                 if img[kr + spr0, kc + spc0] < img[kr + spr1, kc + spc1]:
                     descriptors[i, p] = True
-    return ecc(descriptors)
+
+    checks = []
+    for i in range(len(descriptors)):
+        checks.append(make_check(descriptors[i]))
+
+    return descriptors, checks
 
 
-def match(descriptors1, descriptors2, max_distance=np.inf, cross_check=True, distance_ratio=None):
-    descriptors1 = descriptors1.get()
-    descriptors2 = descriptors2.get()
+def match(descriptors1, descriptors2, c1, c2, max_distance=np.inf, cross_check=True, distance_ratio=None):
+    for i in range(len(descriptors1)):
+        correct(descriptors1[i], c1[i])
+    for j in range(len(descriptors2)):
+        correct(descriptors2[j], c2[j])
+
     distances = cdist(descriptors1, descriptors2, metric='hamming')  # distances.shape: [len(d1), len(d2)]
 
     indices1 = np.arange(descriptors1.shape[0])  # [0, 1, 2, 3, 4, 5, 6, 7, ..., len(d1)] "indices of d1"
@@ -357,13 +371,21 @@ if __name__ == "__main__":
         plt.subplot(1, 2, 2)
         plt.imshow(features_img2)
 
-        d1 = BRIEF(grays1[i], scale_kp1, mode='uniform', patch_size=8, n=512)
+        d1, c1 = BRIEF(grays1[i], scale_kp1, mode='uniform', patch_size=8, n=512)
         ds1.append(d1)
-        d2 = BRIEF(grays2[i], scale_kp2, mode='uniform', patch_size=8, n=512)
+        d2, c2 = BRIEF(grays2[i], scale_kp2, mode='uniform', patch_size=8, n=512)
         ds2.append(d2)
 
-        matches = match(d1, d2, cross_check=True)
+        vector_index, val_index = error_inj(random.choice([[d1], [d2], c1, c2]))
+
+        matches = match(d1, d2, c1, c2, cross_check=True)
         ms.append(matches)
+
+        fig = plt.figure(figsize=(20, 10))
+        ax = fig.add_subplot(1, 1, 1)
+
+        plot_matches(ax, grays1[i], grays2[i], np.flip(scale_kp1, 1), np.flip(scale_kp2, 1), matches)
+
         print('no. of matches: ', matches.shape[0])
         print(matches)
 
@@ -374,16 +396,13 @@ if __name__ == "__main__":
         match_0 = [0,match_kp0]
         print("MATCH 0: ", match_0)
 
-        t = d1.val
-        t2 = d2.val
+        t = d1
+        t2 = d2
         differences = np.bitwise_xor(t[0],t2[match_0[1]])
         hamming_dist = sum(differences)
         print('Hamming distance between kp0 and its match = ',hamming_dist)
 
-        fig = plt.figure(figsize=(20, 10))
-        ax = fig.add_subplot(1, 1, 1)
 
-        plot_matches(ax, grays1[i], grays2[i], np.flip(scale_kp1, 1), np.flip(scale_kp2, 1), matches)
         plt.show()
 
     plt.figure(figsize=(20, 10))
