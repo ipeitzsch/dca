@@ -248,7 +248,6 @@ def BRIEF(img, keypoints, orientations=None, n=256, patch_size=9, sigma=1, mode=
 
                 if img[kr + spr0, kc + spc0] < img[kr + spr1, kc + spc1]:
                     descriptors[i, p] = True
-
     return ecc(descriptors)
 
 
@@ -316,13 +315,13 @@ if __name__ == "__main__":
     N_LAYERS = 4
     DOWNSCALE = 2
 
-    img1 = cv2.imread('ditto.PNG')
+    img1 = cv2.imread('test_imgs/guy2.PNG')
     original_img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
     img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
     gray1 = cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)
     grays1 = list(pyramid_gaussian(gray1, downscale=DOWNSCALE, max_layer=N_LAYERS, multichannel=False))
 
-    img2 = cv2.imread('smallditto.png')
+    img2 = cv2.imread('test_imgs/guy.PNG')
     original_img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
     gray2 = cv2.cvtColor(img2, cv2.COLOR_RGB2GRAY)
@@ -366,6 +365,20 @@ if __name__ == "__main__":
         matches = match(d1, d2, cross_check=True)
         ms.append(matches)
         print('no. of matches: ', matches.shape[0])
+        print(matches)
+
+        for i in range(len(matches)):
+            if(matches[i][0]==0):
+                match_kp0 = matches[i][1]
+
+        match_0 = [0,match_kp0]
+        print("MATCH 0: ", match_0)
+
+        t = d1.val
+        t2 = d2.val
+        differences = np.bitwise_xor(t[0],t2[match_0[1]])
+        hamming_dist = sum(differences)
+        print('Hamming distance between kp0 and its match = ',hamming_dist)
 
         fig = plt.figure(figsize=(20, 10))
         ax = fig.add_subplot(1, 1, 1)
