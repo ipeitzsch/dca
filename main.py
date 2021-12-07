@@ -26,10 +26,9 @@ class ecc:
             
     def error_inj(self, descriptors):
         x = random.choice(descriptors)
-        return x
         j = random.randrange(len(x))
-        return j
         x[j] = bool(not x[j])
+        return descriptors.index(x)
 
     def get(self):
 
@@ -249,7 +248,8 @@ def BRIEF(img, keypoints, orientations=None, n=256, patch_size=9, sigma=1, mode=
 
                 if img[kr + spr0, kc + spc0] < img[kr + spr1, kc + spc1]:
                     descriptors[i, p] = True
-    return descriptors
+
+    return ecc(descriptors)
 
 
 def match(descriptors1, descriptors2, max_distance=np.inf, cross_check=True, distance_ratio=None):
