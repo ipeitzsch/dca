@@ -26,7 +26,9 @@ class ecc:
             
     def error_inj(self, descriptors):
         x = random.choice(descriptors)
+        return x
         j = random.randrange(len(x))
+        return j
         x[j] = bool(not x[j])
 
     def get(self):
