@@ -2,10 +2,12 @@ import numpy as np
 import random
 from scipy.signal import convolve2d
 from scipy.spatial.distance import cdist
-
+from time import time
 class OopsieException(Exception):
     pass
 
+
+debug = True
 
 def make_check(val):
     checks = []
@@ -33,7 +35,7 @@ def error_inj(descriptors):
     x = y[k]
     j = random.randrange(len(x))
     x[j] = bool(not x[j])
-    return i, j
+    return i, k, j
 
 def correct(val, checks):
 
@@ -256,17 +258,19 @@ def BRIEF(img, keypoints, orientations=None, n=256, patch_size=9, sigma=1, mode=
                     descriptors[i, p] = True
 
     checks = []
-    for i in range(len(descriptors)):
-        checks.append(make_check(descriptors[i]))
+    if debug:
+        for i in range(len(descriptors)):
+            checks.append(make_check(descriptors[i]))
 
     return descriptors, checks
 
 
 def match(descriptors1, descriptors2, c1, c2, max_distance=np.inf, cross_check=True, distance_ratio=None):
-    for i in range(len(descriptors1)):
-        correct(descriptors1[i], c1[i])
-    for j in range(len(descriptors2)):
-        correct(descriptors2[j], c2[j])
+    if debug:
+        for i in range(len(descriptors1)):
+            correct(descriptors1[i], c1[i])
+        for j in range(len(descriptors2)):
+            correct(descriptors2[j], c2[j])
 
     distances = cdist(descriptors1, descriptors2, metric='hamming')  # distances.shape: [len(d1), len(d2)]
 
@@ -318,9 +322,14 @@ def match(descriptors1, descriptors2, c1, c2, max_distance=np.inf, cross_check=T
     return matches
 
 def match_hamming(error_location,matches,descriptors1, descriptors2):
+    match_kp0 = -1
     for i in range(len(matches)):
         if(matches[i][0]==error_location):
             match_kp0 = matches[i][1]
+        if(matches[i][1]==error_location):
+            match_kp0 = matches[i][0]
+    if match_kp0 < 0:
+        return 0
     match_0 = [error_location,match_kp0]
     differences = np.bitwise_xor(descriptors1[error_location],descriptors2[match_0[1]])
     hamming_dist = sum(differences)
@@ -360,52 +369,59 @@ if __name__ == "__main__":
     ds1 = []
     ds2 = []
     ms = []
-    for i in range(len(scales)):
-        scale_kp1 = FAST(grays1[i], N=9, threshold=0.15, nms_window=3)
-        kps1.append(scale_kp1 * scales[i])
-        scale_kp2 = FAST(grays2[i], N=9, threshold=0.15, nms_window=3)
-        kps2.append(scale_kp2 * scales[i])
-        for keypoint in scale_kp1:
-            features_img1 = cv2.circle(features_img1, tuple(keypoint * scales[i]), 3 * scales[i], (0, 255, 0), 1)
-        for keypoint in scale_kp2:
-            features_img2 = cv2.circle(features_img2, tuple(keypoint * scales[i]), 3 * scales[i], (0, 255, 0), 1)
-        plt.figure()
-        plt.subplot(1, 2, 1)
-        plt.imshow(grays1[i], cmap='gray')
-        plt.subplot(1, 2, 2)
-        plt.imshow(features_img1)
 
-        plt.figure()
-        plt.subplot(1, 2, 1)
-        plt.imshow(grays2[i], cmap='gray')
-        plt.subplot(1, 2, 2)
-        plt.imshow(features_img2)
+    start = time()
 
-        d1, c1 = BRIEF(grays1[i], scale_kp1, mode='uniform', patch_size=8, n=512)
-        ds1.append(d1)
-        d2, c2 = BRIEF(grays2[i], scale_kp2, mode='uniform', patch_size=8, n=512)
-        ds2.append(d2)
-
-        vector_index, val_index = error_inj(random.choice([[d1], [d2], c1, c2]))
-
-        matches = match(d1, d2, c1, c2, cross_check=True)
-        ms.append(matches)
-
-        fig = plt.figure(figsize=(20, 10))
-        ax = fig.add_subplot(1, 1, 1)
-
-        hamming_dist = match_hamming(21,matches,d1,d2)
-
-        plot_matches(ax, grays1[i], grays2[i], np.flip(scale_kp1, 1), np.flip(scale_kp2, 1), matches)
-        print('no. of matches: ', matches.shape[0])
-
-       
-
-        plt.show()
-
-    plt.figure(figsize=(20, 10))
+    scale_kp1 = FAST(grays1[0], N=9, threshold=0.15, nms_window=3)
+    kps1.append(scale_kp1 * scales[0])
+    scale_kp2 = FAST(grays2[0], N=9, threshold=0.15, nms_window=3)
+    kps2.append(scale_kp2 * scales[0])
+    for keypoint in scale_kp1:
+        features_img1 = cv2.circle(features_img1, tuple(keypoint * scales[0]), 3 * scales[0], (0, 255, 0), 1)
+    for keypoint in scale_kp2:
+        features_img2 = cv2.circle(features_img2, tuple(keypoint * scales[0]), 3 * scales[0], (0, 255, 0), 1)
+    plt.figure()
     plt.subplot(1, 2, 1)
+    plt.imshow(grays1[0], cmap='gray')
+    plt.subplot(1, 2, 2)
     plt.imshow(features_img1)
+
+    plt.figure()
+    plt.subplot(1, 2, 1)
+    plt.imshow(grays2[0], cmap='gray')
     plt.subplot(1, 2, 2)
     plt.imshow(features_img2)
-    plt.show()
+
+    d1, c1 = BRIEF(grays1[0], scale_kp1, mode='uniform', patch_size=8, n=512)
+    ds1.append(d1)
+    d2, c2 = BRIEF(grays2[0], scale_kp2, mode='uniform', patch_size=8, n=512)
+    ds2.append(d2)
+
+    end1 = time()
+    if debug:
+        vector_index1, vector_index2, val_index = error_inj(random.choice([[d1], [d2], c1, c2]))
+    else:
+        vector_index1, vector_index2, val_index = error_inj(random.choice([[d1], [d2]]))
+    end2 = time()
+    matches = match(d1, d2, c1, c2, cross_check=True)
+    end3 = time()
+    ms.append(matches)
+
+    fig = plt.figure(figsize=(20, 10))
+    ax = fig.add_subplot(1, 1, 1)
+
+    hamming_dist = match_hamming(vector_index2,matches,d1,d2)
+
+    # plot_matches(ax, grays1[0], grays2[0], np.flip(scale_kp1, 1), np.flip(scale_kp2, 1), matches)
+    print('no. of matches: ', matches.shape[0])
+
+    print(f'time: {(end3 - end2) + (end1 - start)} seconds')
+
+    # plt.show()
+    #
+    # plt.figure(figsize=(20, 10))
+    # plt.subplot(1, 2, 1)
+    # plt.imshow(features_img1)
+    # plt.subplot(1, 2, 2)
+    # plt.imshow(features_img2)
+    # plt.show()
