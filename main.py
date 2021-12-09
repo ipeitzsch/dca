@@ -317,6 +317,16 @@ def match(descriptors1, descriptors2, c1, c2, max_distance=np.inf, cross_check=T
     matches = np.column_stack((indices1[sorted_indices], indices2[sorted_indices]))
     return matches
 
+def match_hamming(error_location,matches,descriptors1, descriptors2):
+    for i in range(len(matches)):
+        if(matches[i][0]==error_location):
+            match_kp0 = matches[i][1]
+    match_0 = [error_location,match_kp0]
+    differences = np.bitwise_xor(descriptors1[error_location],descriptors2[match_0[1]])
+    hamming_dist = sum(differences)
+    print('Hamming distance between kp0 and its match = ',hamming_dist)
+    return hamming_dist
+
 
 if __name__ == "__main__":
     import cv2
@@ -384,24 +394,12 @@ if __name__ == "__main__":
         fig = plt.figure(figsize=(20, 10))
         ax = fig.add_subplot(1, 1, 1)
 
+        hamming_dist = match_hamming(21,matches,d1,d2)
+
         plot_matches(ax, grays1[i], grays2[i], np.flip(scale_kp1, 1), np.flip(scale_kp2, 1), matches)
-
         print('no. of matches: ', matches.shape[0])
-        print(matches)
 
-        for i in range(len(matches)):
-            if(matches[i][0]==0):
-                match_kp0 = matches[i][1]
-
-        match_0 = [0,match_kp0]
-        print("MATCH 0: ", match_0)
-
-        t = d1
-        t2 = d2
-        differences = np.bitwise_xor(t[0],t2[match_0[1]])
-        hamming_dist = sum(differences)
-        print('Hamming distance between kp0 and its match = ',hamming_dist)
-
+       
 
         plt.show()
 
