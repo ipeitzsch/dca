@@ -1,0 +1,120 @@
+no. of matches: 25
+time: 0.21146 seconds
+Hamming distance between kp0 and its match = 0
+Hamming distance between kp0 and its match = 0
+
+*********************************
+no. of matches: 25
+time: 0.22796 seconds
+Hamming distance between kp0 and its match = 0
+Hamming distance between kp0 and its match = 1
+
+*********************************
+no. of matches: 25
+time: 0.21552 seconds
+Hamming distance between kp0 and its match = 1
+Hamming distance between kp0 and its match = 1
+
+*********************************
+no. of matches: 25
+time: 0.22136 seconds
+Hamming distance between kp0 and its match = 1
+Hamming distance between kp0 and its match = 0
+
+*********************************
+no. of matches: 25
+time: 0.20448 seconds
+Hamming distance between kp0 and its match = 1
+Hamming distance between kp0 and its match = 0
+
+*********************************
+no. of matches: 25
+time: 0.21740 seconds
+Hamming distance between kp0 and its match = 1
+Hamming distance between kp0 and its match = 1
+
+*********************************
+no. of matches: 25
+time: 0.24735 seconds
+Hamming distance between kp0 and its match = 1
+Hamming distance between kp0 and its match = 0
+
+*********************************
+no. of matches: 25
+time: 0.22340 seconds
+Hamming distance between kp0 and its match = 1
+Hamming distance between kp0 and its match = 1
+
+*********************************
+no. of matches: 25
+time: 0.23992 seconds
+Hamming distance between kp0 and its match = 0
+Hamming distance between kp0 and its match = 1
+
+*********************************
+no. of matches: 25
+time: 0.21550 seconds
+Hamming distance between kp0 and its match = 1
+Hamming distance between kp0 and its match = 0
+
+*********************************
+no. of matches: 25
+time: 0.22312 seconds
+Hamming distance between kp0 and its match = 0
+Hamming distance between kp0 and its match = 1
+
+*********************************
+no. of matches: 25
+time: 0.20702 seconds
+Hamming distance between kp0 and its match = 1
+Hamming distance between kp0 and its match = 0
+
+*********************************
+no. of matches: 25
+time: 0.28626 seconds
+Hamming distance between kp0 and its match = 0
+Hamming distance between kp0 and its match = 0
+
+*********************************
+no. of matches: 25
+time: 0.24331 seconds
+Hamming distance between kp0 and its match = 0
+Hamming distance between kp0 and its match = 1
+
+*********************************
+no. of matches: 25
+time: 0.21943 seconds
+Hamming distance between kp0 and its match = 1
+Hamming distance between kp0 and its match = 1
+
+*********************************
+no. of matches: 25
+time: 0.24693 seconds
+Hamming distance between kp0 and its match = 0
+Hamming distance between kp0 and its match = 4
+
+*********************************
+no. of matches: 25
+time: 0.28528 seconds
+Hamming distance between kp0 and its match = 4
+Hamming distance between kp0 and its match = 6
+
+*********************************
+no. of matches: 25
+time: 0.23342 seconds
+Hamming distance between kp0 and its match = 1
+Hamming distance between kp0 and its match = 1
+
+*********************************
+no. of matches: 25
+time: 0.24634 seconds
+Hamming distance between kp0 and its match = 1
+Hamming distance between kp0 and its match = 1
+
+*********************************
+no. of matches: 25
+time: 0.28071 seconds
+Hamming distance between kp0 and its match = 1
+Hamming distance between kp0 and its match = 0
+
+*********************************

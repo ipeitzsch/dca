@@ -6,9 +6,9 @@ from time import time
 class OopsieException(Exception):
     pass
 
-
-debug = True
-
+#enable ecc
+debug = False
+numerrs = 2
 def make_check(val):
     checks = []
 
@@ -321,20 +321,37 @@ def match(descriptors1, descriptors2, c1, c2, max_distance=np.inf, cross_check=T
     matches = np.column_stack((indices1[sorted_indices], indices2[sorted_indices]))
     return matches
 
-def match_hamming(error_location,matches,descriptors1, descriptors2):
-    match_kp0 = -1
-    for i in range(len(matches)):
-        if(matches[i][0]==error_location):
-            match_kp0 = matches[i][1]
-        if(matches[i][1]==error_location):
-            match_kp0 = matches[i][0]
-    if match_kp0 < 0:
-        return 0
-    match_0 = [error_location,match_kp0]
-    differences = np.bitwise_xor(descriptors1[error_location],descriptors2[match_0[1]])
-    hamming_dist = sum(differences)
-    print('Hamming distance between kp0 and its match = ',hamming_dist)
-    return hamming_dist
+def match_hamming(error_locations,matches,descriptors1, descriptors2, a):
+
+    differences = []
+
+    ret = []
+    for b in range(len(a)):
+        error_location = error_locations[b]
+        d1 = descriptors1
+        d2 = descriptors2
+        match_kp0 = -1
+        for i in range(len(matches)):
+
+            if(a[b] == 0 and matches[i][0]==error_location):
+                match_kp0 = matches[i][1]
+                d1 = descriptors1
+                d2 = descriptors2
+            if(a[b] == 1 and matches[i][1]==error_location):
+                match_kp0 = matches[i][0]
+                d2 = descriptors1
+                d1 = descriptors2
+
+        if match_kp0 < 0:
+            # print('Match N/A ', 0)
+            ret.append(0)
+            continue
+        match_0 = [error_location,match_kp0]
+        differences = np.bitwise_xor(d1[error_location],d2[match_0[1]])
+        hamming_dist = sum(differences)
+        # print('Hamming distance between kp0 and its match = ',hamming_dist)
+        ret.append(hamming_dist)
+    return ret
 
 
 if __name__ == "__main__":
@@ -345,77 +362,106 @@ if __name__ == "__main__":
     from skimage.transform import pyramid_gaussian
 
     # Trying multi-scale
-    N_LAYERS = 4
-    DOWNSCALE = 2
+    for i in range(20):
+        with open("nodebug_doubleerror_64.txt", "a") as f:
+            N_LAYERS = 4
+            DOWNSCALE = 2
 
-    img1 = cv2.imread('test_imgs/guy2.PNG')
-    original_img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
-    img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
-    gray1 = cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)
-    grays1 = list(pyramid_gaussian(gray1, downscale=DOWNSCALE, max_layer=N_LAYERS, multichannel=False))
+            img1 = cv2.imread('test_imgs/guy2.PNG')
+            original_img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
+            img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
+            gray1 = cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)
+            grays1 = list(pyramid_gaussian(gray1, downscale=DOWNSCALE, max_layer=N_LAYERS, multichannel=False))
 
-    img2 = cv2.imread('test_imgs/guy.PNG')
-    original_img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
-    img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
-    gray2 = cv2.cvtColor(img2, cv2.COLOR_RGB2GRAY)
-    grays2 = list(pyramid_gaussian(gray2, downscale=2, max_layer=4, multichannel=False))
+            img2 = cv2.imread('test_imgs/guy.PNG')
+            original_img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
+            img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
+            gray2 = cv2.cvtColor(img2, cv2.COLOR_RGB2GRAY)
+            grays2 = list(pyramid_gaussian(gray2, downscale=2, max_layer=4, multichannel=False))
 
-    scales = [(i * DOWNSCALE if i > 0 else 1) for i in range(N_LAYERS)]
-    features_img1 = np.copy(img1)
-    features_img2 = np.copy(img2)
+            scales = [(i * DOWNSCALE if i > 0 else 1) for i in range(N_LAYERS)]
+            features_img1 = np.copy(img1)
+            features_img2 = np.copy(img2)
 
-    kps1 = []
-    kps2 = []
-    ds1 = []
-    ds2 = []
-    ms = []
+            kps1 = []
+            kps2 = []
+            ds1 = []
+            ds2 = []
+            ms = []
 
-    start = time()
+            start = time()
 
-    scale_kp1 = FAST(grays1[0], N=9, threshold=0.15, nms_window=3)
-    kps1.append(scale_kp1 * scales[0])
-    scale_kp2 = FAST(grays2[0], N=9, threshold=0.15, nms_window=3)
-    kps2.append(scale_kp2 * scales[0])
-    for keypoint in scale_kp1:
-        features_img1 = cv2.circle(features_img1, tuple(keypoint * scales[0]), 3 * scales[0], (0, 255, 0), 1)
-    for keypoint in scale_kp2:
-        features_img2 = cv2.circle(features_img2, tuple(keypoint * scales[0]), 3 * scales[0], (0, 255, 0), 1)
-    plt.figure()
-    plt.subplot(1, 2, 1)
-    plt.imshow(grays1[0], cmap='gray')
-    plt.subplot(1, 2, 2)
-    plt.imshow(features_img1)
+            scale_kp1 = FAST(grays1[0], N=9, threshold=0.15, nms_window=3)
+            kps1.append(scale_kp1 * scales[0])
+            scale_kp2 = FAST(grays2[0], N=9, threshold=0.15, nms_window=3)
+            kps2.append(scale_kp2 * scales[0])
+            for keypoint in scale_kp1:
+                features_img1 = cv2.circle(features_img1, tuple(keypoint * scales[0]), 3 * scales[0], (0, 255, 0), 1)
+            for keypoint in scale_kp2:
+                features_img2 = cv2.circle(features_img2, tuple(keypoint * scales[0]), 3 * scales[0], (0, 255, 0), 1)
+            # plt.figure()
+            # plt.subplot(1, 2, 1)
+            # plt.imshow(grays1[0], cmap='gray')
+            # plt.subplot(1, 2, 2)
+            # plt.imshow(features_img1)
+            #
+            # plt.figure()
+            # plt.subplot(1, 2, 1)
+            # plt.imshow(grays2[0], cmap='gray')
+            # plt.subplot(1, 2, 2)
+            # plt.imshow(features_img2)
 
-    plt.figure()
-    plt.subplot(1, 2, 1)
-    plt.imshow(grays2[0], cmap='gray')
-    plt.subplot(1, 2, 2)
-    plt.imshow(features_img2)
+            d1, c1 = BRIEF(grays1[0], scale_kp1, mode='uniform', patch_size=8, n=64)
+            ds1.append(d1)
+            d2, c2 = BRIEF(grays2[0], scale_kp2, mode='uniform', patch_size=8, n=64)
+            ds2.append(d2)
 
-    d1, c1 = BRIEF(grays1[0], scale_kp1, mode='uniform', patch_size=8, n=512)
-    ds1.append(d1)
-    d2, c2 = BRIEF(grays2[0], scale_kp2, mode='uniform', patch_size=8, n=512)
-    ds2.append(d2)
+            end1 = time()
+            a = []
+            indeces = []
+            for i in range(numerrs):
+                if debug:
+                    b = random.choice([0,1,2,3])
+                    if b == 0:
+                        vector_index1, vector_index2, val_index = error_inj([d1])
+                        indeces.append(vector_index2)
+                    elif b == 1:
+                        vector_index1, vector_index2, val_index = error_inj([d2])
+                        indeces.append(vector_index2)
+                    elif b == 2:
+                        vector_index1, vector_index2, val_index = error_inj(c1)
+                        indeces.append(vector_index2)
+                    else:
+                        vector_index1, vector_index2, val_index = error_inj(c2)
+                        indeces.append(vector_index2)
 
-    end1 = time()
-    if debug:
-        vector_index1, vector_index2, val_index = error_inj(random.choice([[d1], [d2], c1, c2]))
-    else:
-        vector_index1, vector_index2, val_index = error_inj(random.choice([[d1], [d2]]))
-    end2 = time()
-    matches = match(d1, d2, c1, c2, cross_check=True)
-    end3 = time()
-    ms.append(matches)
+                else:
+                    b = random.choice([0, 1])
+                    if b == 0:
+                        vector_index1, vector_index2, val_index = error_inj([d1])
+                        indeces.append(vector_index2)
+                    elif b == 1:
+                        vector_index1, vector_index2, val_index = error_inj([d2])
+                        indeces.append(vector_index2)
+                a.append(b)
+            end2 = time()
+            matches = match(d1, d2, c1, c2, cross_check=True)
+            end3 = time()
+            ms.append(matches)
 
-    fig = plt.figure(figsize=(20, 10))
-    ax = fig.add_subplot(1, 1, 1)
+            # fig = plt.figure(figsize=(20, 10))
+            # ax = fig.add_subplot(1, 1, 1)
 
-    hamming_dist = match_hamming(vector_index2,matches,d1,d2)
+            hamming_dist = match_hamming(indeces,matches,d1,d2,a)
 
-    # plot_matches(ax, grays1[0], grays2[0], np.flip(scale_kp1, 1), np.flip(scale_kp2, 1), matches)
-    print('no. of matches: ', matches.shape[0])
+            # plot_matches(ax, grays1[0], grays2[0], np.flip(scale_kp1, 1), np.flip(scale_kp2, 1), matches)
+            f.write(f'no. of matches: {matches.shape[0]}\n')
 
-    print(f'time: {(end3 - end2) + (end1 - start)} seconds')
+            f.write(f'time: {(end3 - end2) + (end1 - start):5.5f} seconds\n')
+
+            for h in hamming_dist:
+                f.write(f'Hamming distance between kp0 and its match = {h}\n')
+            f.write('\n*********************************\n')
 
     # plt.show()
     #
